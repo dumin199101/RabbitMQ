@@ -3,6 +3,7 @@ package com.goosuu.rabbitmq;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.MessageProperties;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -42,9 +43,10 @@ public class WorkQueuesProducer {
         channel.queueDeclare(QUEUE_NAME,true,false,false,null);
 
         // 要发送的消息
-        for (int i = 1; i <= 10 ; i++) {
+        for (int i = 1; i <= 100 ; i++) {
             String message = i + "Hello,我是你的宝贝";
-            channel.basicPublish("",QUEUE_NAME,null,message.getBytes());
+            // 消息持久化
+            channel.basicPublish("",QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN,message.getBytes());
         }
 
 
