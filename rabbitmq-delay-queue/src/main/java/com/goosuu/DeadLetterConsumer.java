@@ -14,4 +14,11 @@ public class DeadLetterConsumer {
     public void getMsg(String message) {
         log.info("当前时间：{}，收到一条消息：{}", new Date().toString(), message);
     }
+
+    @RabbitListener(queues = RabbitMQConfig.DELAYED_QUEUE_NAME)
+    public void getDelayMsg(String message) {
+        log.info("当前时间：{}，收到一条消息：{}", new Date().toString(), message);
+    }
+
+
 }

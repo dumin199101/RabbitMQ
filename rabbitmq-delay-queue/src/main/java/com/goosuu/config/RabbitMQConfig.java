@@ -31,6 +31,17 @@ public class RabbitMQConfig {
     // 死信交换机routingkey
     public static final String Y_ROUTING_KEY = "YD";
 
+    // 不绑定过期时间的队列
+    public static final String QUEUE_C = "QC";
+    public static final String C_ROUTING_KEY = "XC";
+
+    //延时队列（借助插件）
+    public static final String DELAYED_QUEUE_NAME = "delayed.queue";
+    public static final String DELAYED_EXCHANGE_NAME = "delayed.exchange";
+    public static final String DELAYED_ROUTING_KEY = "delayed.routingkey";
+
+
+
 
     @Bean("xExchange")
     public Exchange xExchange(){
@@ -41,6 +52,14 @@ public class RabbitMQConfig {
     public Exchange yExchange(){
         return ExchangeBuilder.directExchange(DEAD_DIRECT_EXCHANGE).durable(true).build();
     }
+
+    @Bean("delayedExchange")
+    public CustomExchange delayedExchange(){
+        HashMap<String,Object> args = new HashMap<>();
+        args.put("x-delayed-type","direct");
+        return new CustomExchange(DELAYED_EXCHANGE_NAME,"x-delayed-message",true,false,args);
+    }
+
 
     @Bean("queue_10")
     public Queue queue_10(){
@@ -69,6 +88,22 @@ public class RabbitMQConfig {
         return QueueBuilder.durable(DEAD_QUEUE).build();
     }
 
+    @Bean("queue_c")
+    public Queue queue_c(){
+        HashMap<String, Object> args = new HashMap<>();
+        // 绑定死信交换机
+        args.put("x-dead-letter-exchange",DEAD_DIRECT_EXCHANGE);
+        args.put("x-dead-letter-routing-key",Y_ROUTING_KEY);
+        return QueueBuilder.durable(QUEUE_C).withArguments(args).build();
+    }
+
+    @Bean("queue_delay")
+    public Queue queue_delay(){
+        return new Queue(DELAYED_QUEUE_NAME);
+    }
+
+
+
     @Bean
     public Binding queueABind(@Qualifier("queue_10") Queue queue,@Qualifier("xExchange") Exchange exchange){
         return BindingBuilder.bind(queue).to(exchange).with(A_ROUTING_KEY).noargs();
@@ -82,6 +117,16 @@ public class RabbitMQConfig {
     @Bean
     public Binding queueDBind(@Qualifier("queue_dead") Queue queue,@Qualifier("yExchange") Exchange exchange){
         return BindingBuilder.bind(queue).to(exchange).with(Y_ROUTING_KEY).noargs();
+    }
+
+    @Bean
+    public Binding queueCBind(@Qualifier("queue_c") Queue queue,@Qualifier("xExchange") Exchange exchange){
+        return BindingBuilder.bind(queue).to(exchange).with(C_ROUTING_KEY).noargs();
+    }
+
+    @Bean
+    public Binding queueDelayedBind(@Qualifier("queue_delay") Queue queue,@Qualifier("delayedExchange") Exchange exchange){
+        return BindingBuilder.bind(queue).to(exchange).with(DELAYED_ROUTING_KEY).noargs();
     }
 
 }

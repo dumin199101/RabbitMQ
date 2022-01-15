@@ -26,6 +26,24 @@ public class SendMsgController {
           rabbitTemplate.convertAndSend(RabbitMQConfig.DIRECT_EXCHANGE,RabbitMQConfig.B_ROUTING_KEY,"消息来自ttl为40s的队列" + message);
      }
 
+     @GetMapping("sendExpireMsg/{message}/{ttlTime}")
+     public void sendMsg(@PathVariable String message,@PathVariable String ttlTime){
+          log.info("当前时间:{},给队列发送了一条延时{}毫秒的消息:{}",new Date(),ttlTime,message);
+          rabbitTemplate.convertAndSend(RabbitMQConfig.DIRECT_EXCHANGE,RabbitMQConfig.C_ROUTING_KEY,message,correlationData -> {
+               correlationData.getMessageProperties().setExpiration(ttlTime);
+               return correlationData;
+          });
+     }
+
+     @GetMapping("sendDelayMsg/{message}/{delayTime}")
+     public void sendMsg(@PathVariable String message,@PathVariable Integer delayTime){
+          log.info("当前时间:{},给队列发送了一条延时{}毫秒的消息:{}",new Date(),delayTime,message);
+          rabbitTemplate.convertAndSend(RabbitMQConfig.DELAYED_EXCHANGE_NAME,RabbitMQConfig.DELAYED_ROUTING_KEY,message,correlationData -> {
+               correlationData.getMessageProperties().setDelay(delayTime);
+               return correlationData;
+          });
+     }
+
 
 }
 
